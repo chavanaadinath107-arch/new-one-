@@ -17,12 +17,7 @@ import {
   Coins
 } from 'lucide-react';
 import Footer from './Footer';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from '../utils';
 
 interface HomeProps {
   onNavigate: (tab: string) => void;

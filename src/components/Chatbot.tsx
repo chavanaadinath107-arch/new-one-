@@ -3,6 +3,7 @@ import { MessageSquare, Send, Loader2, User, Bot, Sparkles } from 'lucide-react'
 import { getChatResponse } from '../services/gemini';
 import Markdown from 'react-markdown';
 import { motion, AnimatePresence } from 'motion/react';
+import { cn } from '../utils';
 
 interface Message {
   role: 'user' | 'model';
@@ -146,8 +147,4 @@ export default function Chatbot() {
       </div>
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
 }

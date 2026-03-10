@@ -26,6 +26,7 @@ import {
 } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
 import { Stock, PortfolioItem, UserState } from '../types';
+import { cn } from '../utils';
 
 const INITIAL_STOCKS: Stock[] = [
   { symbol: 'RELIANCE', name: 'Reliance Industries', price: 2950.45, change: 45.20, changePercent: 1.55, history: [] },
@@ -555,8 +556,4 @@ export default function Simulator({ userState, onTrade }: SimulatorProps) {
       </div>
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
 }

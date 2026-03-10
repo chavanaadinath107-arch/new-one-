@@ -3,6 +3,7 @@ import { BrainCircuit, Loader2, CheckCircle2, XCircle, RefreshCw, ArrowRight } f
 import { generateQuiz } from '../services/gemini';
 import { QuizQuestion } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
+import { cn } from '../utils';
 
 export default function Quiz() {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -174,8 +175,4 @@ export default function Quiz() {
       </div>
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
 }
