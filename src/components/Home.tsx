@@ -34,24 +34,27 @@ const SLIDES = [
     title: "Master the Language of Money",
     description: "Demystify complex financial jargon with AI-powered explanations that actually make sense.",
     icon: BookOpen,
-    color: "bg-blue-500",
-    image: "https://picsum.photos/seed/finance/800/400"
+    color: "text-blue-500",
+    bgColor: "bg-blue-50",
+    borderColor: "border-blue-100"
   },
   {
     id: 'simulator',
     title: "Risk-Free Trading Practice",
     description: "Test your strategies with ₹10,00,000 in virtual capital. Real market dynamics, zero real risk.",
     icon: TrendingUp,
-    color: "bg-emerald-500",
-    image: "https://picsum.photos/seed/trading/800/400"
+    color: "text-emerald-500",
+    bgColor: "bg-emerald-50",
+    borderColor: "border-emerald-100"
   },
   {
     id: 'quiz',
     title: "Challenge Your Knowledge",
     description: "Take AI-generated quizzes to reinforce what you've learned and track your progress.",
     icon: BrainCircuit,
-    color: "bg-purple-500",
-    image: "https://picsum.photos/seed/quiz/800/400"
+    color: "text-purple-500",
+    bgColor: "bg-purple-50",
+    borderColor: "border-purple-100"
   }
 ];
 
@@ -68,60 +71,71 @@ export default function Home({ onNavigate }: HomeProps) {
   return (
     <div className="space-y-16 pb-12">
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-[2.5rem] bg-zinc-900 text-white p-8 md:p-16">
-        <div className="absolute top-0 right-0 w-1/2 h-full opacity-20 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-l from-emerald-500/50 to-transparent" />
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <path d="M0 100 C 20 0 50 0 100 100" fill="none" stroke="currentColor" strokeWidth="0.1" />
+      <section className="relative overflow-hidden rounded-[3rem] bg-zinc-950 text-white p-10 md:p-20 shadow-2xl shadow-emerald-500/10">
+        {/* Animated Background Elements */}
+        <div className="absolute top-0 right-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/20 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute top-1/2 -left-24 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px]" />
+          
+          <svg className="absolute inset-0 w-full h-full opacity-[0.03]" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <defs>
+              <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5" />
+              </pattern>
+            </defs>
+            <rect width="100" height="100" fill="url(#grid)" />
           </svg>
         </div>
 
-        <div className="relative z-10 max-w-2xl space-y-6">
+        <div className="relative z-10 max-w-3xl space-y-8">
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-widest"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-emerald-400 text-xs font-bold uppercase tracking-widest"
           >
-            <Sparkles size={14} />
-            <span>AI-Powered Learning</span>
+            <Sparkles size={14} className="animate-spin-slow" />
+            <span>The Future of Financial Literacy</span>
           </motion.div>
           
           <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1]"
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05]"
           >
-            Invest in your <span className="text-emerald-400">Knowledge</span> first.
+            Invest in your <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-500">
+              Knowledge
+            </span> first.
           </motion.h1>
           
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-zinc-400 text-lg md:text-xl leading-relaxed"
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="text-zinc-400 text-lg md:text-2xl leading-relaxed max-w-2xl"
           >
-            StockSense AI is your personal gateway to the financial world. Learn, practice, and master the stock market with the help of advanced AI.
+            Master the stock market with AI-driven insights, risk-free simulations, and personalized learning paths.
           </motion.p>
 
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="flex flex-wrap gap-4 pt-4"
+            transition={{ delay: 0.4, duration: 0.6 }}
+            className="flex flex-wrap gap-5 pt-6"
           >
             <button 
               onClick={() => onNavigate('learn')}
-              className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold transition-all flex items-center gap-2 group shadow-lg shadow-emerald-500/20"
+              className="px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl font-bold transition-all flex items-center gap-3 group shadow-xl shadow-emerald-500/20 active:scale-95"
             >
-              Start Learning
-              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              Get Started
+              <ArrowRight size={22} className="group-hover:translate-x-1.5 transition-transform" />
             </button>
             <button 
               onClick={() => onNavigate('simulator')}
-              className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold transition-all backdrop-blur-sm"
+              className="px-10 py-5 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl font-bold transition-all backdrop-blur-md active:scale-95"
             >
-              Try Simulator
+              Open Simulator
             </button>
           </motion.div>
         </div>
@@ -144,29 +158,41 @@ export default function Home({ onNavigate }: HomeProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className="group bg-white border border-black/5 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 transition-all flex flex-col"
+              onClick={() => onNavigate(feature.id)}
+              className={cn(
+                "group relative p-10 rounded-[2.5rem] border transition-all duration-500 cursor-pointer overflow-hidden",
+                "bg-white hover:shadow-2xl hover:shadow-black/5 hover:-translate-y-2",
+                feature.borderColor
+              )}
             >
-              <div className="h-48 relative overflow-hidden">
-                <img 
-                  src={feature.image} 
-                  alt={feature.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  referrerPolicy="no-referrer"
-                />
-                <div className={`absolute top-4 left-4 w-12 h-12 ${feature.color} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
-                  {React.createElement(feature.icon, { size: 24 })}
+              {/* Background Accent */}
+              <div className={cn(
+                "absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-10 blur-3xl transition-all duration-700 group-hover:scale-150 group-hover:opacity-20",
+                feature.bgColor.replace('bg-', 'bg-')
+              )} />
+
+              <div className="relative z-10 space-y-6">
+                <div className={cn(
+                  "w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-3",
+                  feature.bgColor,
+                  feature.color
+                )}>
+                  {React.createElement(feature.icon, { size: 32, strokeWidth: 2 })}
                 </div>
-              </div>
-              <div className="p-8 flex-1 flex flex-col space-y-4">
-                <h3 className="text-2xl font-bold leading-tight group-hover:text-emerald-600 transition-colors">{feature.title}</h3>
-                <p className="text-zinc-500 text-sm leading-relaxed flex-1">{feature.description}</p>
-                <button 
-                  onClick={() => onNavigate(feature.id)}
-                  className="inline-flex items-center gap-2 text-emerald-600 font-bold hover:underline group/btn"
-                >
-                  Go to {feature.id.charAt(0).toUpperCase() + feature.id.slice(1)}
-                  <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
-                </button>
+
+                <div className="space-y-3">
+                  <h3 className="text-2xl font-bold leading-tight text-zinc-900 group-hover:text-emerald-600 transition-colors">
+                    {feature.title}
+                  </h3>
+                  <p className="text-zinc-500 text-sm leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+
+                <div className="pt-4 flex items-center gap-2 text-sm font-bold text-zinc-400 group-hover:text-emerald-600 transition-colors">
+                  <span>Explore {feature.id}</span>
+                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                </div>
               </div>
             </motion.div>
           ))}
