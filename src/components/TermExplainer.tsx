@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Loader2, BookOpen, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Loader2, BookOpen, ArrowRight, AlertCircle } from 'lucide-react';
 import { explainTerm } from '../services/gemini';
-import ReactMarkdown from 'react-markdown';
+import Markdown from 'react-markdown';
 import { motion } from 'motion/react';
 
 const COMMON_TERMS = [
@@ -13,17 +13,27 @@ export default function TermExplainer() {
   const [query, setQuery] = useState('');
   const [explanation, setExplanation] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async (term: string) => {
     if (!term.trim()) return;
     setLoading(true);
     setExplanation(null);
+    setError(null);
     try {
       const result = await explainTerm(term);
-      setExplanation(result || "Sorry, I couldn't find an explanation for that.");
-    } catch (error) {
-      console.error(error);
-      setExplanation("An error occurred while fetching the explanation.");
+      if (result) {
+        setExplanation(result);
+      } else {
+        setError("The AI returned an empty response. Please try again.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      if (err.message?.includes("API_KEY_INVALID") || err.message?.includes("API key not found")) {
+        setError("Invalid API Key. Please check your Gemini API key configuration.");
+      } else {
+        setError("An error occurred while fetching the explanation. Please try again later.");
+      }
     } finally {
       setLoading(false);
     }
@@ -73,6 +83,17 @@ export default function TermExplainer() {
         ))}
       </div>
 
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-center gap-3 text-red-700"
+        >
+          <AlertCircle size={20} className="shrink-0" />
+          <p className="text-sm font-medium">{error}</p>
+        </motion.div>
+      )}
+
       {explanation && (
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
@@ -85,7 +106,7 @@ export default function TermExplainer() {
             <span>AI Explanation</span>
           </div>
           <div className="prose prose-zinc max-w-none prose-headings:font-bold prose-p:leading-relaxed">
-            <ReactMarkdown>{explanation}</ReactMarkdown>
+            <Markdown>{explanation}</Markdown>
           </div>
         </motion.div>
       )}

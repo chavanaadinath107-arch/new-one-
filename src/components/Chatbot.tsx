@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Send, Loader2, User, Bot, Sparkles } from 'lucide-react';
 import { getChatResponse } from '../services/gemini';
-import ReactMarkdown from 'react-markdown';
+import Markdown from 'react-markdown';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface Message {
@@ -38,10 +38,18 @@ export default function Chatbot() {
       }));
       
       const response = await getChatResponse(history);
-      setMessages(prev => [...prev, { role: 'model', text: response || "I'm sorry, I couldn't process that." }]);
-    } catch (error) {
+      if (response) {
+        setMessages(prev => [...prev, { role: 'model', text: response }]);
+      } else {
+        setMessages(prev => [...prev, { role: 'model', text: "I'm sorry, I couldn't process that. The AI returned an empty response." }]);
+      }
+    } catch (error: any) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'model', text: "An error occurred. Please try again." }]);
+      let errorMsg = "An error occurred. Please try again.";
+      if (error.message?.includes("API_KEY_INVALID") || error.message?.includes("API key not found")) {
+        errorMsg = "Invalid API Key. Please check your Gemini API key configuration.";
+      }
+      setMessages(prev => [...prev, { role: 'model', text: errorMsg }]);
     } finally {
       setLoading(false);
     }
@@ -95,7 +103,7 @@ export default function Chatbot() {
                 : "bg-zinc-100 text-zinc-800 rounded-tl-none"
             )}>
               <div className="prose prose-sm prose-zinc max-w-none dark:prose-invert">
-                <ReactMarkdown>{msg.text}</ReactMarkdown>
+                <Markdown>{msg.text}</Markdown>
               </div>
             </div>
           </motion.div>
