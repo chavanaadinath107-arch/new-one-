@@ -29,10 +29,10 @@ export default function TermExplainer() {
       }
     } catch (err: any) {
       console.error(err);
-      if (err.message?.includes("API_KEY_INVALID") || err.message?.includes("API key not found")) {
-        setError("Invalid API Key. Please check your Gemini API key configuration.");
+      if (err.message?.includes("API_KEY_INVALID") || err.message?.includes("API key not found") || err.message?.includes("missing")) {
+        setError("Gemini API key is missing or invalid. Please check your configuration.");
       } else {
-        setError("An error occurred while fetching the explanation. Please try again later.");
+        setError(err.message || "An error occurred while fetching the explanation. Please try again later.");
       }
     } finally {
       setLoading(false);

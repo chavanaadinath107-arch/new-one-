@@ -4,7 +4,14 @@ import { QuizQuestion } from "../types";
 // The API key is defined in vite.config.ts via process.env.GEMINI_API_KEY
 const apiKey = process.env.GEMINI_API_KEY || "";
 
+const checkApiKey = () => {
+  if (!apiKey) {
+    throw new Error("Gemini API key is missing. Please set GEMINI_API_KEY in your environment.");
+  }
+};
+
 export const explainTerm = async (term: string) => {
+  checkApiKey();
   const ai = new GoogleGenAI({ apiKey });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
@@ -14,6 +21,7 @@ export const explainTerm = async (term: string) => {
 };
 
 export const generateQuiz = async (topic: string = "general stock market"): Promise<QuizQuestion[]> => {
+  checkApiKey();
   const ai = new GoogleGenAI({ apiKey });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
@@ -42,6 +50,7 @@ export const generateQuiz = async (topic: string = "general stock market"): Prom
 };
 
 export const getChatResponse = async (history: { role: 'user' | 'model', parts: { text: string }[] }[]) => {
+  checkApiKey();
   const ai = new GoogleGenAI({ apiKey });
   const activeChat = ai.chats.create({
     model: "gemini-3-flash-preview",

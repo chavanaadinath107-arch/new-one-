@@ -13,6 +13,7 @@ export default function Quiz() {
   const [showExplanation, setShowExplanation] = useState(false);
   const [loading, setLoading] = useState(true);
   const [quizFinished, setQuizFinished] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchQuiz = async () => {
     setLoading(true);
@@ -21,11 +22,13 @@ export default function Quiz() {
     setScore(0);
     setSelectedAnswer(null);
     setShowExplanation(false);
+    setError(null);
     try {
       const data = await generateQuiz();
       setQuestions(data);
-    } catch (error) {
-      console.error(error);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "An error occurred while generating the quiz.");
     } finally {
       setLoading(false);
     }
@@ -59,6 +62,27 @@ export default function Quiz() {
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
         <Loader2 className="animate-spin text-emerald-500" size={48} />
         <p className="text-zinc-500 font-medium">AI is generating your quiz...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-md mx-auto bg-white border border-black/5 rounded-3xl p-10 shadow-sm text-center space-y-6">
+        <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
+          <XCircle size={40} />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold text-red-600">Oops!</h2>
+          <p className="text-zinc-500">{error}</p>
+        </div>
+        <button
+          onClick={fetchQuiz}
+          className="w-full py-4 bg-zinc-900 text-white rounded-2xl font-semibold hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2"
+        >
+          <RefreshCw size={20} />
+          Try Again
+        </button>
       </div>
     );
   }
