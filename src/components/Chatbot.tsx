@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, Loader2, User, Bot, Sparkles } from 'lucide-react';
+import { MessageSquare, Send, Loader2, User, Bot, Sparkles, Mic, MicOff } from 'lucide-react';
 import { getChatResponse } from '../services/gemini';
 import Markdown from 'react-markdown';
 import { motion, AnimatePresence } from 'motion/react';
@@ -16,6 +16,7 @@ export default function Chatbot() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,6 +54,45 @@ export default function Chatbot() {
       setMessages(prev => [...prev, { role: 'model', text: errorMsg }]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleVoiceInput = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert("Voice recognition is not supported in this browser.");
+      return;
+    }
+
+    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-IN';
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
+      setIsListening(false);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error(event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    if (isListening) {
+      recognition.stop();
+    } else {
+      recognition.start();
     }
   };
 
@@ -125,6 +165,16 @@ export default function Chatbot() {
 
       <div className="p-4 bg-zinc-50 border-t border-black/5">
         <div className="relative flex items-center gap-2 max-w-3xl mx-auto">
+          <button
+            onClick={toggleVoiceInput}
+            className={cn(
+              "p-3 rounded-2xl transition-all shadow-sm",
+              isListening ? "bg-red-100 text-red-600 animate-pulse" : "bg-white border border-black/5 text-zinc-500 hover:bg-zinc-100"
+            )}
+            title="Voice Input"
+          >
+            {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+          </button>
           <input
             type="text"
             value={input}

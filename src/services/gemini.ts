@@ -64,3 +64,131 @@ export const getChatResponse = async (history: { role: 'user' | 'model', parts: 
   const response = await activeChat.sendMessage({ message: lastMessage });
   return response.text;
 };
+
+export const getRecommendations = async (balance: number, portfolio: any[]) => {
+  checkApiKey();
+  const ai = new GoogleGenAI({ apiKey });
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Based on a user with a virtual balance of ₹${balance.toLocaleString()} and a current portfolio of ${JSON.stringify(portfolio)}, suggest 3 specific Indian stocks (NSE/BSE) they should look into and 2 learning topics they should master next. Provide a brief reason for each. Return as a JSON object with "stocks" (array of {name, symbol, reason}) and "topics" (array of {title, reason}).`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          stocks: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                name: { type: Type.STRING },
+                symbol: { type: Type.STRING },
+                reason: { type: Type.STRING },
+              },
+              required: ["name", "symbol", "reason"],
+            },
+          },
+          topics: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                reason: { type: Type.STRING },
+              },
+              required: ["title", "reason"],
+            },
+          },
+        },
+        required: ["stocks", "topics"],
+      },
+    },
+  });
+  return JSON.parse(response.text);
+};
+
+export const analyzePortfolio = async (portfolio: any[], balance: number) => {
+  checkApiKey();
+  const ai = new GoogleGenAI({ apiKey });
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Analyze this stock portfolio: ${JSON.stringify(portfolio)} with a remaining cash balance of ₹${balance.toLocaleString()}. Provide a professional analysis of the diversification, risk level, and potential improvements. Use a friendly but expert tone. Use Markdown for formatting.`,
+  });
+  return response.text;
+};
+
+export const predictStockPrice = async (symbol: string, history: any[]) => {
+  checkApiKey();
+  const ai = new GoogleGenAI({ apiKey });
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Predict the next 5 intervals for the stock ${symbol} based on this recent price history: ${JSON.stringify(history.slice(-10))}. Provide a technical analysis of the trend (Bullish/Bearish/Neutral) and the predicted prices. Return as a JSON object with "trend" (string), "reasoning" (string), and "predictions" (array of numbers).`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          trend: { type: Type.STRING },
+          reasoning: { type: Type.STRING },
+          predictions: { type: Type.ARRAY, items: { type: Type.NUMBER } },
+        },
+        required: ["trend", "reasoning", "predictions"],
+      },
+    },
+  });
+  return JSON.parse(response.text);
+};
+
+export const analyzeSentiment = async (news: string[]) => {
+  checkApiKey();
+  const ai = new GoogleGenAI({ apiKey });
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Analyze the sentiment of these financial news headlines: ${JSON.stringify(news)}. For each headline, determine if it's Positive, Negative, or Neutral. Also provide an overall market sentiment score from 0 (Extremely Bearish) to 100 (Extremely Bullish). Return as a JSON object with "headlines" (array of {text, sentiment}) and "overallScore" (number).`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          headlines: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                text: { type: Type.STRING },
+                sentiment: { type: Type.STRING },
+              },
+              required: ["text", "sentiment"],
+            },
+          },
+          overallScore: { type: Type.NUMBER },
+        },
+        required: ["headlines", "overallScore"],
+      },
+    },
+  });
+  return JSON.parse(response.text);
+};
+
+export const calculatePortfolioRisk = async (portfolio: any[]) => {
+  checkApiKey();
+  const ai = new GoogleGenAI({ apiKey });
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Calculate the risk metrics for this stock portfolio: ${JSON.stringify(portfolio)}. Estimate the Beta, Volatility (Standard Deviation), and Value at Risk (VaR) based on general market knowledge of these symbols. Provide a summary of the risk profile. Return as a JSON object with "beta" (number), "volatility" (string), "var" (string), and "summary" (string).`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          beta: { type: Type.NUMBER },
+          volatility: { type: Type.STRING },
+          var: { type: Type.STRING },
+          summary: { type: Type.STRING },
+        },
+        required: ["beta", "volatility", "var", "summary"],
+      },
+    },
+  });
+  return JSON.parse(response.text);
+};

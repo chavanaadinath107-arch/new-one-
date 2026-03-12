@@ -12,7 +12,9 @@ import {
   PieChart,
   Eye,
   EyeOff,
-  Briefcase
+  Briefcase,
+  Activity,
+  Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../utils';
@@ -33,7 +35,10 @@ export default function Layout({ children, activeTab, setActiveTab, balance }: L
     { id: 'learn', label: 'Learn Terms', icon: BookOpen },
     { id: 'quiz', label: 'Knowledge Quiz', icon: BrainCircuit },
     { id: 'simulator', label: 'Trading Sim', icon: TrendingUp },
+    { id: 'portfolio', label: 'Portfolio', icon: PieChart },
     { id: 'chat', label: 'AI Tutor', icon: MessageSquare },
+    { id: 'analytics', label: 'Analytics', icon: Activity },
+    { id: 'admin', label: 'Admin', icon: Settings },
     { id: 'careers', label: 'Careers', icon: Briefcase },
   ];
 

@@ -17,10 +17,14 @@ import {
   Coins
 } from 'lucide-react';
 import Footer from './Footer';
+import Recommendations from './Recommendations';
 import { cn } from '../utils';
+import { UserState, Stock } from '../types';
 
 interface HomeProps {
   onNavigate: (tab: string) => void;
+  userState: UserState;
+  stocks: Stock[];
 }
 
 const SLIDES = [
@@ -62,7 +66,7 @@ const CHOICES = [
   { title: "Currencies", icon: Coins, color: "text-indigo-500" },
 ];
 
-export default function Home({ onNavigate }: HomeProps) {
+export default function Home({ onNavigate, userState, stocks }: HomeProps) {
   return (
     <div className="space-y-16 pb-12">
       {/* Hero Section */}
@@ -135,6 +139,56 @@ export default function Home({ onNavigate }: HomeProps) {
           </motion.div>
         </div>
       </section>
+
+      {/* AI Recommendations Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <Recommendations 
+            balance={userState.balance} 
+            portfolio={userState.portfolio} 
+            onNavigate={onNavigate} 
+          />
+        </div>
+        <div className="bg-white border border-black/5 rounded-[2.5rem] p-8 shadow-sm space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold flex items-center gap-2">
+              <TrendingUp size={18} className="text-emerald-500" />
+              Market Overview
+            </h3>
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Live</span>
+          </div>
+          <div className="space-y-4">
+            {stocks.slice(0, 4).map((stock) => (
+              <div key={stock.symbol} className="flex items-center justify-between group cursor-pointer" onClick={() => onNavigate('simulator')}>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-zinc-100 rounded-lg flex items-center justify-center text-xs font-bold text-zinc-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+                    {stock.symbol[0]}
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold">{stock.symbol}</div>
+                    <div className="text-[10px] text-zinc-400">{stock.name}</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-mono font-bold">₹{stock.price.toLocaleString()}</div>
+                  <div className={cn(
+                    "text-[10px] font-bold",
+                    stock.change >= 0 ? "text-emerald-600" : "text-red-600"
+                  )}>
+                    {stock.change >= 0 ? '+' : ''}{stock.changePercent}%
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button 
+            onClick={() => onNavigate('simulator')}
+            className="w-full py-3 bg-zinc-50 text-zinc-500 rounded-2xl text-xs font-bold hover:bg-zinc-100 transition-all"
+          >
+            View All Markets
+          </button>
+        </div>
+      </div>
 
       {/* Explore Features Grid */}
       <section className="space-y-8">

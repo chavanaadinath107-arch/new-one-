@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Search, Loader2, BookOpen, ArrowRight, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Loader2, BookOpen, ArrowRight, AlertCircle, Mic, MicOff } from 'lucide-react';
 import { explainTerm } from '../services/gemini';
 import Markdown from 'react-markdown';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import { cn } from '../utils';
 
 const COMMON_TERMS = [
   "Bull Market", "Bear Market", "Dividends", "P/E Ratio", 
@@ -14,6 +15,7 @@ export default function TermExplainer() {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isListening, setIsListening] = useState(false);
 
   const handleSearch = async (term: string) => {
     if (!term.trim()) return;
@@ -39,11 +41,51 @@ export default function TermExplainer() {
     }
   };
 
+  const toggleVoiceInput = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert("Voice recognition is not supported in this browser.");
+      return;
+    }
+
+    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-IN';
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setQuery(transcript);
+      handleSearch(transcript);
+      setIsListening(false);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error(event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    if (isListening) {
+      recognition.stop();
+    } else {
+      recognition.start();
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Learn Stock Terms</h2>
-        <p className="text-zinc-500">Ask AI to explain any stock market concept in simple terms.</p>
+        <h2 className="text-3xl font-bold tracking-tight">AI Search Assistant</h2>
+        <p className="text-zinc-500">Ask anything about the stock market using text or voice.</p>
       </div>
 
       <div className="relative group">
@@ -55,16 +97,28 @@ export default function TermExplainer() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
-          placeholder="e.g., What is a dividend?"
-          className="w-full pl-12 pr-4 py-4 bg-white border border-black/5 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-lg"
+          placeholder="e.g., How do I start investing in India?"
+          className="w-full pl-12 pr-28 py-4 bg-white border border-black/5 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-lg"
         />
-        <button
-          onClick={() => handleSearch(query)}
-          disabled={loading}
-          className="absolute right-3 top-1/2 -translate-y-1/2 bg-emerald-500 text-white px-6 py-2 rounded-xl font-medium hover:bg-emerald-600 disabled:opacity-50 transition-colors"
-        >
-          {loading ? <Loader2 className="animate-spin" size={20} /> : "Explain"}
-        </button>
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+          <button
+            onClick={toggleVoiceInput}
+            className={cn(
+              "p-2 rounded-xl transition-all",
+              isListening ? "bg-red-100 text-red-600 animate-pulse" : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"
+            )}
+            title="Voice Input"
+          >
+            {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+          </button>
+          <button
+            onClick={() => handleSearch(query)}
+            disabled={loading}
+            className="bg-emerald-500 text-white px-6 py-2 rounded-xl font-medium hover:bg-emerald-600 disabled:opacity-50 transition-colors"
+          >
+            {loading ? <Loader2 className="animate-spin" size={20} /> : "Search"}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">

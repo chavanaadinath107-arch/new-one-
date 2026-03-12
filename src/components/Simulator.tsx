@@ -9,7 +9,9 @@ import {
   History,
   ShoppingCart,
   IndianRupee,
-  Info
+  Info,
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -27,56 +29,41 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { Stock, PortfolioItem, UserState } from '../types';
 import { cn } from '../utils';
-
-const INITIAL_STOCKS: Stock[] = [
-  { symbol: 'RELIANCE', name: 'Reliance Industries', price: 2950.45, change: 45.20, changePercent: 1.55, history: [] },
-  { symbol: 'TCS', name: 'Tata Consultancy Services', price: 4120.15, change: -12.40, changePercent: -0.30, history: [] },
-  { symbol: 'HDFCBANK', name: 'HDFC Bank Ltd.', price: 1450.60, change: 5.15, changePercent: 0.36, history: [] },
-  { symbol: 'INFY', name: 'Infosys Ltd.', price: 1620.30, change: -8.45, changePercent: -0.52, history: [] },
-  { symbol: 'ICICIBANK', name: 'ICICI Bank Ltd.', price: 1080.25, change: 12.10, changePercent: 1.13, history: [] },
-  { symbol: 'ADANIENT', name: 'Adani Enterprises', price: 3240.80, change: 85.40, changePercent: 2.70, history: [] },
-];
-
-// Generate mock history
-const generateHistory = (basePrice: number) => {
-  const history = [];
-  let currentPrice = basePrice;
-  for (let i = 40; i >= 0; i--) {
-    const time = new Date(Date.now() - i * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const open = currentPrice;
-    const volatility = basePrice * 0.01;
-    const close = open + (Math.random() * volatility * 2 - volatility);
-    const high = Math.max(open, close) + Math.random() * (volatility * 0.5);
-    const low = Math.min(open, close) - Math.random() * (volatility * 0.5);
-    
-    currentPrice = close;
-    history.push({ 
-      time, 
-      price: parseFloat(close.toFixed(2)),
-      open: parseFloat(open.toFixed(2)),
-      high: parseFloat(high.toFixed(2)),
-      low: parseFloat(low.toFixed(2)),
-      close: parseFloat(close.toFixed(2))
-    });
-  }
-  return history;
-};
+import { analyzePortfolio } from '../services/gemini';
+import Markdown from 'react-markdown';
 
 interface SimulatorProps {
   userState: UserState;
   onTrade: (symbol: string, shares: number, price: number, type: 'buy' | 'sell') => void;
+  stocks: Stock[];
+  setStocks: React.Dispatch<React.SetStateAction<Stock[]>>;
 }
 
-export default function Simulator({ userState, onTrade }: SimulatorProps) {
-  const [stocks, setStocks] = useState<Stock[]>(() => 
-    INITIAL_STOCKS.map(s => ({ ...s, history: generateHistory(s.price) }))
-  );
+export default function Simulator({ userState, onTrade, stocks, setStocks }: SimulatorProps) {
   const [selectedSymbol, setSelectedSymbol] = useState('RELIANCE');
   const [tradeAmount, setTradeAmount] = useState<number>(1);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [chartType, setChartType] = useState<'area' | 'line' | 'bar' | 'candle'>('candle');
   const [timeframe, setTimeframe] = useState('1M');
   const [activeSubTab, setActiveSubTab] = useState('Overview');
+  const [analysis, setAnalysis] = useState<string | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+
+  const handleAnalyzePortfolio = async () => {
+    if (userState.portfolio.length === 0) return;
+    setAnalyzing(true);
+    setShowAnalysisModal(true);
+    try {
+      const result = await analyzePortfolio(userState.portfolio, userState.balance);
+      setAnalysis(result);
+    } catch (error) {
+      console.error(error);
+      setAnalysis("Failed to analyze portfolio. Please try again.");
+    } finally {
+      setAnalyzing(false);
+    }
+  };
 
   const selectedStock = useMemo(() => 
     stocks.find(s => s.symbol === selectedSymbol) || stocks[0], 
@@ -87,39 +74,6 @@ export default function Simulator({ userState, onTrade }: SimulatorProps) {
     userState.portfolio.find(p => p.symbol === selectedSymbol),
     [userState.portfolio, selectedSymbol]
   );
-
-  // Simulate price updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setStocks(prev => prev.map(stock => {
-        const volatility = 0.002;
-        const change = stock.price * (Math.random() * volatility * 2 - volatility);
-        const newPrice = Math.max(1, stock.price + change);
-        
-        const open = stock.price;
-        const close = newPrice;
-        const high = Math.max(open, close) + (Math.random() * stock.price * 0.001);
-        const low = Math.min(open, close) - (Math.random() * stock.price * 0.001);
-
-        const newHistory = [...stock.history.slice(1), { 
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), 
-          price: parseFloat(newPrice.toFixed(2)),
-          open: parseFloat(open.toFixed(2)),
-          high: parseFloat(high.toFixed(2)),
-          low: parseFloat(low.toFixed(2)),
-          close: parseFloat(close.toFixed(2))
-        }];
-        return {
-          ...stock,
-          price: parseFloat(newPrice.toFixed(2)),
-          change: parseFloat((newPrice - stock.history[0].price).toFixed(2)),
-          changePercent: parseFloat(((newPrice - stock.history[0].price) / stock.history[0].price * 100).toFixed(2)),
-          history: newHistory
-        };
-      }));
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleTrade = () => {
     if (tradeAmount <= 0) return;
@@ -499,8 +453,18 @@ export default function Simulator({ userState, onTrade }: SimulatorProps) {
           <div className="space-y-6">
             <div>
               <div className="text-zinc-400 text-xs uppercase tracking-wider font-semibold mb-1">Total Assets</div>
-              <div className="text-3xl font-mono font-bold">
-                ₹{(userState.balance + totalPortfolioValue).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-mono font-bold">
+                  ₹{(userState.balance + totalPortfolioValue).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </div>
+                <button
+                  onClick={handleAnalyzePortfolio}
+                  disabled={userState.portfolio.length === 0 || analyzing}
+                  className="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl hover:bg-emerald-500/30 transition-all flex items-center gap-2 text-xs font-bold"
+                >
+                  <Sparkles size={14} className={analyzing ? "animate-spin" : ""} />
+                  AI Analyze
+                </button>
               </div>
             </div>
 
@@ -554,6 +518,67 @@ export default function Simulator({ userState, onTrade }: SimulatorProps) {
           </div>
         </div>
       </div>
+
+      {/* AI Analysis Modal */}
+      <AnimatePresence>
+        {showAnalysisModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAnalysisModal(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+            >
+              <div className="p-8 border-b border-black/5 flex items-center justify-between bg-zinc-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white">
+                    <Sparkles size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">AI Portfolio Analysis</h3>
+                    <p className="text-xs text-zinc-500 font-medium uppercase tracking-widest">Powered by Gemini AI</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowAnalysisModal(false)}
+                  className="p-2 hover:bg-zinc-100 rounded-full transition-colors"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-8">
+                {analyzing ? (
+                  <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                    <Loader2 className="animate-spin text-emerald-500" size={48} />
+                    <p className="text-zinc-500 font-medium">Gemini is analyzing your market positions...</p>
+                  </div>
+                ) : (
+                  <div className="prose prose-zinc max-w-none prose-headings:font-bold prose-p:leading-relaxed">
+                    <Markdown>{analysis}</Markdown>
+                  </div>
+                )}
+              </div>
+              <div className="p-6 border-t border-black/5 bg-zinc-50 flex justify-end">
+                <button
+                  onClick={() => setShowAnalysisModal(false)}
+                  className="px-6 py-2.5 bg-zinc-900 text-white rounded-xl font-bold hover:bg-zinc-800 transition-all"
+                >
+                  Close Analysis
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
